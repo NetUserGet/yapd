@@ -5,7 +5,6 @@ import yt_dlp
 import json
 import csv
 
-
 ydl_options = {
     "paths": {
         "home": "../Songs"
