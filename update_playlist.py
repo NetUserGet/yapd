@@ -13,8 +13,15 @@ ydl_options = {
     "postprocessors": [{
         "key": "FFmpegExtractAudio",
         "preferredcodec": "m4a",
+    },
+    {
+        "key": "FFmpegMetadata"
+    },
+    {
+        "key": "EmbedThumbnail"
     }],
-    "download_archive": "dsongs.txt"
+    "download_archive": "dsongs.txt",
+    "writethumbnail": True
 }
 
 if __name__ == "__main__":
@@ -24,6 +31,7 @@ if __name__ == "__main__":
             if len(urls.readlines()) == 1:
                 print("urls.csv must be longer than 1 line!")
                 exit(1)
+            
         with open("urls.csv", "r") as urls:
             reader = csv.reader(urls)
             for row in list(reader)[1::]:
@@ -32,7 +40,8 @@ if __name__ == "__main__":
         with open("urls.csv", "w") as urls:
             writer = csv.DictWriter(urls, fieldnames=['url'])
             writer.writeheader()
-        print("No urls.csv found!\nCreated urls.csv please append your playlists or videos to the it.")
+        print("No urls.csv found!\n")
+        print("Created urls.csv please append your playlists or videos to the it.")
         exit(1)
 
     with yt_dlp.YoutubeDL(ydl_options) as ydl:
