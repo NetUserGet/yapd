@@ -5,6 +5,8 @@ import yt_dlp
 import json
 import csv
 
+URLS = []
+
 ydl_options = {
     "paths": {
         "home": "../Songs"
@@ -25,7 +27,7 @@ ydl_options = {
 }
 
 if __name__ == "__main__":
-    URLS = []
+    # Obtain playlist or video urls from urls.csv, otherwise create urls.csv with the corrosponding header.
     try:
         with open("urls.csv", "r") as urls:
             if len(urls.readlines()) == 1:
@@ -43,6 +45,7 @@ if __name__ == "__main__":
         print("No urls.csv found!\n")
         print("Created urls.csv please append your playlists or videos to the it.")
         exit(1)
+    
 
     with yt_dlp.YoutubeDL(ydl_options) as ydl:
         error_code = ydl.download(URLS)
