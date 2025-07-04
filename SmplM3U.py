@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
-# Make a "portable" m3u playlist so ios vlc doesn't break :(
+# A simple library to make extended m3u playlists.
 
 import urllib.parse
 import subprocess
+import hashlib
 import json
 import io
 import os
+
+def printm3u(s):
+    print("[SmplM3U] " + s)
 
 def get_duration(filepath):
     """Gets the duration of a video or audio file in seconds."""
@@ -24,15 +28,35 @@ def get_duration(filepath):
         json_output = json.loads(result.stdout)
         return int(float(json_output["format"]["duration"]))
     except subprocess.CalledProcessError as e:
-        print(f"FFprobe error: {e.stderr}")
+        printm3u(f"FFprobe error: {e.stderr}")
         return None
     except Exception as e:
-        print(f"Error getting duration with FFprobe: {e}")
+        printm3u(f"Error getting duration with FFprobe: {e}")
         return None
 
 
-def create_playlist(filename, directory="."):
+def create_playlist(filename, directory=".", cache=True):
     """Creates an extended m3u playlist from the given directory's contents and saves it to filename.m3u"""
+    
+    if cache:
+        m = hashlib.sha256()
+        for file in sorted(os.listdir(directory)):
+                if not file.endswith('.m4a'):
+                    continue
+                m.update(file.encode("utf-8"))
+        try:
+            with open(directory+"/"+"m3ucache.txt", "rb") as cache:
+                    c = cache.read()
+                    if c == m.digest():
+                        printm3u("Contents of directory have not changed!")
+                        printm3u("Skipping creation of m3u playlist!")
+                        return # Since nothing changed we just return
+        except FileNotFoundError:
+            printm3u("Didn't find a m3ucache.txt, creating m3ucache.txt.")
+
+        with open(directory+"/"+"m3ucache.txt", "wb") as cache:
+                # Since we didn't return it is likely that the cache file either doesn't exist or is there are new files.
+                cache.write(m.digest())
 
     playlist = io.StringIO("")
     
@@ -42,11 +66,13 @@ def create_playlist(filename, directory="."):
     for file in sorted(os.listdir(directory)):
         if not file.endswith('.m4a'):
             continue
-        print("[SmplM3U] "+"Appending "+file+" to the playlist.")
+        
+        printm3u("Appending "+file+" to the playlist.")
+        
         playlist.write("#EXTINF:"+str(get_duration(directory+"/"+file))+","+file.removesuffix(".m4a")+"\n")
         playlist.write(urllib.parse.quote(file)+"\n")
     
-    print("[SmplM3U] "+"Writing playlist to " + filename+".m3u")
+    printm3u("Writing playlist to " + filename+".m3u")
     
     with open(directory+"/"+filename+".m3u", "w") as file:
         file.write(playlist.getvalue())        
