@@ -35,13 +35,13 @@ def get_duration(filepath):
         return None
 
 
-def create_playlist(filename, directory=".", cache=True):
+def create_playlist(filename, extension=".m4a", directory=".", cache=True):
     """Creates an extended m3u playlist from the given directory's contents and saves it to filename.m3u"""
     
     if cache:
         m = hashlib.sha256()
         for file in sorted(os.listdir(directory)):
-                if not file.endswith('.m4a'):
+                if not file.endswith(extension):
                     continue
                 m.update(file.encode("utf-8"))
         try:
@@ -64,7 +64,7 @@ def create_playlist(filename, directory=".", cache=True):
     playlist.write("#PLAYLIST:"+filename+"\n") # Technically not standerd but VLC accepts it so idrc
 
     for file in sorted(os.listdir(directory)):
-        if not file.endswith('.m4a'):
+        if not file.endswith(extension):
             continue
         
         printm3u("Appending "+file+" to the playlist.")
