@@ -35,41 +35,29 @@ def get_duration(filepath):
         return None
 
 
-def create_playlist(filename, extension=".m4a", directory=".", cache=True):
+def create_playlist(filename, extension=".m4a", directory=".", cache=True, tracks=[]):
     """Creates an extended m3u playlist from the given directory's contents and saves it to filename.m3u"""
     
-    if cache:
-        m = hashlib.sha256()
-        for file in sorted(os.listdir(directory)):
-                if not file.endswith(extension):
-                    continue
-                m.update(file.encode("utf-8"))
-        try:
-            with open(directory+"/"+"m3ucache.txt", "rb") as cache:
-                    c = cache.read()
-                    if c == m.digest():
-                        printm3u("Contents of directory have not changed!")
-                        printm3u("Skipping creation of m3u playlist!")
-                        return # Since nothing changed we just return
-        except FileNotFoundError:
-            printm3u("Didn't find a m3ucache.txt, creating m3ucache.txt.")
+    # mirror mirror on the wall whos the hackiest of them all?
+    tracks = tracks if tracks else sorted(os.listdir(directory))
 
-        with open(directory+"/"+"m3ucache.txt", "wb") as cache:
-                # Since we didn't return it is likely that the cache file either doesn't exist or is there are new files.
-                cache.write(m.digest())
+    if cache:
+        if __create_cache(directory, extension, tracks):
+            return
 
     playlist = io.StringIO("")
     
     playlist.write("#EXTM3U\n") # Extended m3u playlist file
     playlist.write("#PLAYLIST:"+filename+"\n") # Technically not standerd but VLC accepts it so idrc
-
-    for file in sorted(os.listdir(directory)):
+    
+    
+    for file in tracks:
         if not file.endswith(extension):
             continue
         
         printm3u("Appending "+file+" to the playlist.")
         
-        playlist.write("#EXTINF:"+str(get_duration(directory+"/"+file))+","+file.removesuffix(".m4a")+"\n")
+        playlist.write("#EXTINF:"+str(get_duration(directory+"/"+file))+","+file.removesuffix(extension)+"\n")
         playlist.write(urllib.parse.quote(file)+"\n")
     
     printm3u("Writing playlist to " + filename+".m3u")
@@ -78,3 +66,24 @@ def create_playlist(filename, extension=".m4a", directory=".", cache=True):
         file.write(playlist.getvalue())        
 
     playlist.close()
+
+def __create_cache(directory, extension, tracks):
+        h = hashlib.sha256()
+        for file in tracks:
+                if not file.endswith(extension):
+                    continue
+                h.update(file.encode("utf-8"))
+        try:
+            with open(directory+"/"+"m3ucache.txt", "rb") as cache:
+                    c = cache.read()
+                    if c == h.digest():
+                        printm3u("Contents of directory have not changed!")
+                        printm3u("Skipping creation of m3u playlist!")
+                        return True # Since nothing changed we just return
+        except FileNotFoundError:
+            printm3u("Didn't find a m3ucache.txt, creating m3ucache.txt.")
+
+        with open(directory+"/"+"m3ucache.txt", "wb") as cache:
+                # Since we didn't return it is likely that the cache file either doesn't exist or is there are new files.
+                cache.write(h.digest())
+        return False
