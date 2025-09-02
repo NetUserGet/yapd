@@ -7,23 +7,25 @@ import csv
 
 URLS = []
 
+DIRECTORY = "./sfx"
+
 ydl_options = {
     "paths": {
-        "home": "../Songs"
+        "home": DIRECTORY
     },
     "format": "m4a/bestaudio/best",
     "postprocessors": [{
         "key": "FFmpegExtractAudio",
         "preferredcodec": "m4a",
-    },
-    {
-        "key": "FFmpegMetadata"
-    },
-    {
-        "key": "EmbedThumbnail"
-    }],
-    "download_archive": "dsongs.txt",
-    "writethumbnail": True
+    }]
+#    {
+#        "key": "FFmpegMetadata"
+#    },
+#    {
+#        "key": "EmbedThumbnail"
+#    }],
+#    "download_archive": "dsongs.txt",
+#    "writethumbnail": True
 }
 
 if __name__ == "__main__":
@@ -49,4 +51,4 @@ if __name__ == "__main__":
 
     with yt_dlp.YoutubeDL(ydl_options) as ydl:
         error_code = ydl.download(URLS)
-    SmplM3U.create_playlist("dplaylist", "../Songs")
+    SmplM3U.create_playlist("dplaylist", DIRECTORY)
