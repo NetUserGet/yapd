@@ -1,4 +1,5 @@
-__pycache__
-venv
-dsongs.txt
-urls.csv
+*
+!SmplM3U.py
+!update_playlist.py
+!LICENSE.md
+!.gitignore
